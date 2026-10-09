@@ -1,0 +1,311 @@
+{
+    "models": [
+        {
+            "type": "llm",
+            "publisher": "deepsweet",
+            "key": "ornith-1.0-35b-mlx-oq8",
+            "display_name": "Ornith 1.0 35B OQ8",
+            "architecture": "qwen3_5_moe",
+            "quantization": {
+                "name": "8bit",
+                "bits_per_weight": 8
+            },
+            "size_bytes": 36833661747,
+            "params_string": "35B",
+            "loaded_instances": [
+                {
+                    "id": "ornith-1.0-35b-mlx-oq8",
+                    "config": {
+                        "context_length": 32768,
+                        "parallel": 4,
+                        "reasoning_budget_message": ""
+                    },
+                    "remaining_ttl_seconds": 1720
+                }
+            ],
+            "max_context_length": 262144,
+            "format": "mlx",
+            "capabilities": {
+                "vision": false,
+                "trained_for_tool_use": true
+            },
+            "description": null
+        },
+        {
+            "type": "llm",
+            "publisher": "lmstudio-community",
+            "key": "qwen2.5-vl-72b-instruct",
+            "display_name": "Qwen2.5 VL 72B Instruct",
+            "architecture": "qwen2vl",
+            "quantization": {
+                "name": "Q4_K_M",
+                "bits_per_weight": 4
+            },
+            "size_bytes": 48825936064,
+            "params_string": "72B",
+            "loaded_instances": [],
+            "max_context_length": 128000,
+            "format": "gguf",
+            "capabilities": {
+                "vision": true,
+                "trained_for_tool_use": false
+            },
+            "description": null
+        },
+        {
+            "type": "llm",
+            "publisher": "mlx-community",
+            "key": "llama-3.2-1b-instruct",
+            "display_name": "Llama 3.2 1B Instruct",
+            "architecture": "llama",
+            "quantization": {
+                "name": "4bit",
+                "bits_per_weight": 4
+            },
+            "size_bytes": 712575975,
+            "params_string": "1B",
+            "loaded_instances": [],
+            "max_context_length": 131072,
+            "format": "mlx",
+            "capabilities": {
+                "vision": false,
+                "trained_for_tool_use": true
+            },
+            "description": null
+        },
+        {
+            "type": "llm",
+            "publisher": "lmstudio-community",
+            "key": "qwen2.5-0.5b-instruct-mlx",
+            "display_name": "Qwen2.5 0.5B Instruct",
+            "architecture": "qwen2",
+            "quantization": {
+                "name": "4bit",
+                "bits_per_weight": 4
+            },
+            "size_bytes": 293989098,
+            "params_string": "0.5B",
+            "loaded_instances": [],
+            "max_context_length": 32768,
+            "format": "mlx",
+            "capabilities": {
+                "vision": false,
+                "trained_for_tool_use": true
+            },
+            "description": null
+        },
+        {
+            "type": "llm",
+            "publisher": "vanch007",
+            "key": "huihui-qwen3.6-35b-a3b-claude-4.6-opus-abliterated-mlx",
+            "display_name": "Huihui Qwen3.6 35B A3B Claude 4.6 Opus Abliterated",
+            "architecture": "qwen3_5_moe",
+            "quantization": {
+                "name": "bf16",
+                "bits_per_weight": 16
+            },
+            "size_bytes": 70234609438,
+            "params_string": "35B",
+            "loaded_instances": [],
+            "max_context_length": 262144,
+            "format": "mlx",
+            "capabilities": {
+                "vision": true,
+                "trained_for_tool_use": true
+            },
+            "description": null
+        },
+        {
+            "type": "llm",
+            "publisher": "vanch007",
+            "key": "huihui-qwen3.6-35b-a3b-abliterated-mlx",
+            "display_name": "Huihui Qwen3.6 35B A3B Abliterated",
+            "architecture": "qwen3_5_moe",
+            "quantization": {
+                "name": "bf16",
+                "bits_per_weight": 16
+            },
+            "size_bytes": 70241333158,
+            "params_string": "35B",
+            "loaded_instances": [],
+            "max_context_length": 262144,
+            "format": "mlx",
+            "capabilities": {
+                "vision": true,
+                "trained_for_tool_use": true
+            },
+            "description": null
+        },
+        {
+            "type": "llm",
+            "publisher": "vanch007",
+            "key": "huihui-qwen3.5-35b-a3b-claude-4.6-opus-abliterated-mlx",
+            "display_name": "Huihui Qwen3.5 35B A3B Claude 4.6 Opus Abliterated",
+            "architecture": "qwen3_5_moe",
+            "quantization": {
+                "name": "bf16",
+                "bits_per_weight": 16
+            },
+            "size_bytes": 70241334677,
+            "params_string": "35B",
+            "loaded_instances": [],
+            "max_context_length": 262144,
+            "format": "mlx",
+            "capabilities": {
+                "vision": true,
+                "trained_for_tool_use": true
+            },
+            "description": null
+        },
+        {
+            "type": "llm",
+            "publisher": "m5max",
+            "key": "huihui-qwen3.6-35b-a3b-claude-4.6-opus-abliterated-mlx-oq8-mtp",
+            "display_name": "Huihui Qwen3.6 35B A3B Claude 4.6 Opus Abliterated OQ8 Mtp",
+            "architecture": "qwen3_5_moe",
+            "quantization": {
+                "name": "8bit",
+                "bits_per_weight": 8
+            },
+            "size_bytes": 37720145368,
+            "params_string": "35B",
+            "loaded_instances": [],
+            "max_context_length": 262144,
+            "format": "mlx",
+            "capabilities": {
+                "vision": true,
+                "trained_for_tool_use": true
+            },
+            "description": null
+        },
+        {
+            "type": "llm",
+            "publisher": "jialinyyzz",
+            "key": "qwen3.8-27b-dspark-drafter",
+            "display_name": "Qwen3.8 27B DSpark Drafter",
+            "architecture": "qwen3",
+            "quantization": {
+                "name": "bf16",
+                "bits_per_weight": 16
+            },
+            "size_bytes": 2718605416,
+            "params_string": "27B",
+            "loaded_instances": [],
+            "max_context_length": 262144,
+            "format": "torch_safetensors",
+            "capabilities": {
+                "vision": false,
+                "trained_for_tool_use": false
+            },
+            "description": null
+        },
+        {
+            "type": "llm",
+            "publisher": "jialinyyzz",
+            "key": "qwen3.8-27b-abliterated-mlx",
+            "display_name": "Qwen3.8 27B Abliterated",
+            "architecture": "qwen3_5",
+            "quantization": {
+                "name": "8bit",
+                "bits_per_weight": 8
+            },
+            "size_bytes": 29528166597,
+            "params_string": "27B",
+            "loaded_instances": [],
+            "max_context_length": 262144,
+            "format": "mlx",
+            "capabilities": {
+                "vision": true,
+                "trained_for_tool_use": true
+            },
+            "description": null
+        },
+        {
+            "type": "llm",
+            "publisher": "lmstudio-community",
+            "key": "gemma-4-12b-it-mlx",
+            "display_name": "Gemma 4 12B Instruct",
+            "architecture": "gemma4_unified",
+            "quantization": {
+                "name": "8bit",
+                "bits_per_weight": 8
+            },
+            "size_bytes": 12748554014,
+            "params_string": "12B",
+            "loaded_instances": [],
+            "max_context_length": 262144,
+            "format": "mlx",
+            "capabilities": {
+                "vision": true,
+                "trained_for_tool_use": true
+            },
+            "description": null
+        },
+        {
+            "type": "llm",
+            "publisher": "mlx-community",
+            "key": "huihui-qwen3.6-35b-a3b-claude-4.7-opus-abliterated-mlx",
+            "display_name": "Huihui Qwen3.6 35B A3B Claude 4.7 Opus Abliterated",
+            "architecture": "qwen3_5_moe",
+            "quantization": {
+                "name": "8bit",
+                "bits_per_weight": 8
+            },
+            "size_bytes": 36848431616,
+            "params_string": "35B",
+            "loaded_instances": [
+                {
+                    "id": "huihui-qwen-claud",
+                    "config": {
+                        "context_length": 81920,
+                        "parallel": 4,
+                        "reasoning_budget_message": ""
+                    }
+                }
+            ],
+            "max_context_length": 262144,
+            "format": "mlx",
+            "capabilities": {
+                "vision": false,
+                "trained_for_tool_use": true
+            },
+            "description": null
+        },
+        {
+            "type": "llm",
+            "publisher": "lmstudio-community",
+            "key": "qwen3.8-27b-mlx",
+            "display_name": "Qwen3.8 27B",
+            "architecture": "qwen3_5",
+            "quantization": {
+                "name": "8bit",
+                "bits_per_weight": 8
+            },
+            "size_bytes": 29528174882,
+            "params_string": "27B",
+            "loaded_instances": [],
+            "max_context_length": 262144,
+            "format": "mlx",
+            "capabilities": {
+                "vision": true,
+                "trained_for_tool_use": true
+            },
+            "description": null
+        },
+        {
+            "type": "embedding",
+            "publisher": "nomic-ai",
+            "key": "text-embedding-nomic-embed-text-v1.5",
+            "display_name": "Nomic Embed Text v1.5",
+            "quantization": {
+                "name": "Q4_K_M",
+                "bits_per_weight": 4
+            },
+            "size_bytes": 84106624,
+            "params_string": null,
+            "loaded_instances": [],
+            "max_context_length": 2048,
+            "format": "gguf"
+        }
+    ]
+}

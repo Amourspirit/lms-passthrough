@@ -1,0 +1,37 @@
+host: 0.0.0.0
+port: 1234
+default_provider: lm-studio
+security:
+  enabled: false
+  token_env: LMS_PASSTHROUGH_TOKEN
+persistence:
+  path: ./storage/state/lms-passthrough.sqlite3
+  retention_days: 30
+logging:
+  level: INFO
+  format: json
+providers:
+  - name: lm-studio
+    kind: lm_studio
+    base_url: http://127.0.0.1:8999
+  - name: android
+    kind: openai_compatible
+    base_url: http://127.0.0.1:8380
+    api_key_env: ANDROID_API_KEY
+  - name: 1min-chat
+    kind: one_min_chat
+    base_url: https://api.1min.ai
+    api_key_env: ONEMIN_API_KEY
+  - name: 1min-code-generator
+    kind: one_min_code_generator
+    base_url: https://api.1min.ai
+    api_key_env: ONEMIN_API_KEY
+  - name: system1
+    kind: system1
+    base_url: https://dserver-3411.example.com
+    extra_headers:
+      CF-Access-Client-Id: ${CF_ACCESS_CLIENT_ID}
+      CF-Access-Client-Secret: ${CF_OMLX_TOKEN}
+    models:
+      - public: openjev
+        upstream: openjev

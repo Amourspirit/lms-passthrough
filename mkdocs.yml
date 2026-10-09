@@ -1,0 +1,18 @@
+site_name: LMS Passthrough
+site_description: LM Studio-compatible proxy documentation
+theme:
+  name: material
+plugins:
+  - search
+  - mike
+nav:
+  - Home: index.md
+  - Configuration: configuration.md
+  - Routing: routing.md
+  - Providers: providers.md
+  - Provider contract kit: provider-contract.md
+  - LM Studio conformance: conformance.md
+  - ADRs:
+      - Typed HTTP boundary: adr/0001-typed-http-boundary.md
+      - Failure-driven failover: adr/0002-failure-driven-failover.md
+      - Transcription response formats: adr/0003-transcription-response-formats.md

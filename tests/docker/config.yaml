@@ -1,0 +1,15 @@
+host: 0.0.0.0
+port: 8000
+default_provider: lm-studio
+security:
+  enabled: false
+persistence:
+  path: /app/state/lms-passthrough.sqlite3
+  retention_days: 1
+logging:
+  level: INFO
+  format: text
+providers:
+  - name: lm-studio
+    kind: lm_studio
+    base_url: http://host.docker.internal:9876
