@@ -37,7 +37,11 @@ class ProviderConfig(BaseModel):
 
     name: str
     kind: Literal[
-        "lm_studio", "openai_compatible", "one_min_chat", "one_min_code_generator", "system1"
+        "lm_studio",
+        "openai_compatible",
+        "one_min_chat",
+        "one_min_code_generator",
+        "system1_decision",
     ]
     base_url: str
     api_key_env: str | None = None

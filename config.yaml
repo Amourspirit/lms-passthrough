@@ -26,8 +26,8 @@ providers:
     kind: one_min_code_generator
     base_url: https://api.1min.ai
     api_key_env: ONEMIN_API_KEY
-  - name: system1
-    kind: system1
+  - name: system1-decision
+    kind: system1_decision
     base_url: https://dserver-3411.example.com
     extra_headers:
       CF-Access-Client-Id: ${CF_ACCESS_CLIENT_ID}

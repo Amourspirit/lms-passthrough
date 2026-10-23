@@ -104,8 +104,8 @@ def make_app(tmp_path: Path, providers: str, *, failover: bool = False) -> Any:
     return create_app(config)
 
 
-SYSTEM1 = f"""  - name: system1
-    kind: system1
+SYSTEM1_DECISION = f"""  - name: system1-decision
+    kind: system1_decision
     base_url: {JEV}
     extra_headers:
       CF-Access-Client-Id: cf-id
@@ -132,10 +132,10 @@ def test_examples_round_trip(tmp_path: Path, path: str, example: dict[str, Any])
         router.post(f"{JEV}/api/v1/decisions").mock(
             side_effect=capture(seen, httpx.Response(200, json=ENVELOPE))
         )
-        response = TestClient(make_app(tmp_path, SYSTEM1)).post(path, json=example)
+        response = TestClient(make_app(tmp_path, SYSTEM1_DECISION)).post(path, json=example)
     assert response.status_code == 200
     assert response.json() == ENVELOPE
-    assert response.headers["x-lms-provider"] == "system1"
+    assert response.headers["x-lms-provider"] == "system1-decision"
     sent = json.loads(seen[0].content)
     # Null choice criteria survive; the public model id is mapped to upstream.
     assert sent == {**example, "model": "jev-upstream"}
@@ -151,7 +151,7 @@ def test_model_is_optional_and_not_invented(tmp_path: Path) -> None:
         router.post(f"{JEV}/api/v1/decisions").mock(
             side_effect=capture(seen, httpx.Response(200, json=ENVELOPE))
         )
-        response = TestClient(make_app(tmp_path, SYSTEM1)).post(PATHS[0], json=body)
+        response = TestClient(make_app(tmp_path, SYSTEM1_DECISION)).post(PATHS[0], json=body)
     assert response.status_code == 200
     assert "model" not in json.loads(seen[0].content)
 
@@ -164,7 +164,7 @@ def test_api_key_sent_as_bearer(tmp_path: Path) -> None:
             router.post(f"{JEV}/api/v1/decisions").mock(
                 side_effect=capture(seen, httpx.Response(200, json=ENVELOPE))
             )
-            app = make_app(tmp_path, SYSTEM1 + f"    api_key_env: {JEV_KEY_ENV}\n")
+            app = make_app(tmp_path, SYSTEM1_DECISION + f"    api_key_env: {JEV_KEY_ENV}\n")
             response = TestClient(app).post(PATHS[0], json=EXAMPLE_1)
     finally:
         del os.environ[JEV_KEY_ENV]
@@ -178,7 +178,7 @@ def test_nonzero_code_passes_through(tmp_path: Path) -> None:
         router.post(f"{JEV}/api/v1/decisions").mock(
             return_value=httpx.Response(200, json=envelope)
         )
-        response = TestClient(make_app(tmp_path, SYSTEM1)).post(PATHS[0], json=EXAMPLE_1)
+        response = TestClient(make_app(tmp_path, SYSTEM1_DECISION)).post(PATHS[0], json=EXAMPLE_1)
     assert response.status_code == 200
     assert response.json() == envelope
 
@@ -198,20 +198,20 @@ def test_invalid_question_is_422(tmp_path: Path, question: dict[str, Any]) -> No
     body = {"state": "s", "questions": {"q": question}}
     with respx.mock(assert_all_called=False) as router:
         route = router.post(f"{JEV}/api/v1/decisions")
-        response = TestClient(make_app(tmp_path, SYSTEM1)).post(PATHS[0], json=body)
+        response = TestClient(make_app(tmp_path, SYSTEM1_DECISION)).post(PATHS[0], json=body)
     assert response.status_code == 422
     assert not route.called
 
 
 def test_missing_state_and_unknown_field_are_422(tmp_path: Path) -> None:
-    client = TestClient(make_app(tmp_path, SYSTEM1))
+    client = TestClient(make_app(tmp_path, SYSTEM1_DECISION))
     assert client.post(PATHS[0], json={"questions": {}}).status_code == 422
     extra = {**EXAMPLE_1, "stream": True}
     assert client.post(PATHS[0], json=extra).status_code == 422
 
 
 def test_header_pins_provider(tmp_path: Path) -> None:
-    client = TestClient(make_app(tmp_path, SYSTEM1))
+    client = TestClient(make_app(tmp_path, SYSTEM1_DECISION))
     lms = client.post(PATHS[0], json=EXAMPLE_1, headers={"X-LMS-Provider": "lm-studio"})
     assert lms.status_code == 400
     assert "does not support decisions" in lms.json()["error"]["message"]
@@ -228,7 +228,7 @@ def test_no_decisions_provider_is_400(tmp_path: Path) -> None:
 def test_upstream_unreachable_is_503(tmp_path: Path) -> None:
     with respx.mock() as router:
         router.post(f"{JEV}/api/v1/decisions").mock(side_effect=httpx.ConnectError("down"))
-        response = TestClient(make_app(tmp_path, SYSTEM1)).post(PATHS[0], json=EXAMPLE_1)
+        response = TestClient(make_app(tmp_path, SYSTEM1_DECISION)).post(PATHS[0], json=EXAMPLE_1)
     assert response.status_code == 503
 
 
@@ -237,28 +237,28 @@ def test_upstream_4xx_is_relayed(tmp_path: Path) -> None:
         router.post(f"{JEV}/api/v1/decisions").mock(
             return_value=httpx.Response(400, json={"code": 1, "message": "bad"})
         )
-        response = TestClient(make_app(tmp_path, SYSTEM1)).post(PATHS[0], json=EXAMPLE_1)
+        response = TestClient(make_app(tmp_path, SYSTEM1_DECISION)).post(PATHS[0], json=EXAMPLE_1)
     assert response.status_code == 400
     assert response.json()["error"]["provider_error"] == {"code": 1, "message": "bad"}
 
 
 def test_failover_to_second_decisions_provider(tmp_path: Path) -> None:
-    second = f"  - name: system1-b\n    kind: system1\n    base_url: {JEV2}\n"
+    second = f"  - name: system1-decision-b\n    kind: system1_decision\n    base_url: {JEV2}\n"
     with respx.mock() as router:
         router.post(f"{JEV}/api/v1/decisions").mock(return_value=httpx.Response(502))
         router.post(f"{JEV2}/api/v1/decisions").mock(
             return_value=httpx.Response(200, json=ENVELOPE)
         )
-        app = make_app(tmp_path, SYSTEM1 + second, failover=True)
+        app = make_app(tmp_path, SYSTEM1_DECISION + second, failover=True)
         response = TestClient(app).post(PATHS[0], json=EXAMPLE_1)
     assert response.status_code == 200
-    assert response.headers["x-lms-provider"] == "system1-b"
+    assert response.headers["x-lms-provider"] == "system1-decision-b"
 
 
-def test_chat_against_system1_is_400(tmp_path: Path) -> None:
-    response = TestClient(make_app(tmp_path, SYSTEM1)).post(
+def test_chat_against_system1_decision_is_400(tmp_path: Path) -> None:
+    response = TestClient(make_app(tmp_path, SYSTEM1_DECISION)).post(
         "/v1/chat/completions",
         json={"model": "openjev", "messages": [{"role": "user", "content": "hi"}]},
-        headers={"X-LMS-Provider": "system1"},
+        headers={"X-LMS-Provider": "system1-decision"},
     )
     assert response.status_code == 400

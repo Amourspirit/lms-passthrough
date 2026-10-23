@@ -65,7 +65,7 @@ from lms_passthrough.provider_api import (
 from lms_passthrough.providers.lm_studio import LMStudioProvider
 from lms_passthrough.providers.one_min import OneMinChatProvider, OneMinCodeGeneratorProvider
 from lms_passthrough.providers.openai_compatible import OpenAICompatibleProvider
-from lms_passthrough.providers.system1 import System1Provider
+from lms_passthrough.providers.system1_decision import System1DecisionProvider
 from lms_passthrough.state.store import StateStore, StoredResponse
 
 READY_OK_MAX = 500
@@ -144,8 +144,8 @@ class AppState:
                     api_key,
                     client,
                 )
-            elif provider.kind == "system1":
-                self.providers[provider.name] = System1Provider(
+            elif provider.kind == "system1_decision":
+                self.providers[provider.name] = System1DecisionProvider(
                     provider.name,
                     provider.base_url,
                     client,

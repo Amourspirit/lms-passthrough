@@ -45,7 +45,7 @@ per request.
 | `openai_compatible` | OpenAI-compatible upstream (e.g. an Android phone). Streaming synthesized when the upstream has no native SSE. |
 | `one_min_chat` | 1min.ai chat, native SSE, supports transcriptions. |
 | `one_min_code_generator` | 1min.ai code generator; synthesized streaming. |
-| `system1` | JEV `/decisions` only. |
+| `system1_decision` | JEV `/decisions` only. |
 
 ## Quick start
 

@@ -23,7 +23,7 @@ from lms_passthrough.provider_api import (
 HTTP_ERROR_THRESHOLD = 400
 
 
-class System1Provider:
+class System1DecisionProvider:
     """Forwards decision requests; the upstream envelope is returned unchanged."""
 
     def __init__(
