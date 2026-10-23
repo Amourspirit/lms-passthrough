@@ -111,8 +111,22 @@ CI runs `ruff check .` → `mypy` → `pytest` → `mkdocs build --strict`.
 
 ```bash
 docker compose build          # image: lms-passthrough:local
-docker compose up
+docker compose up -d
 ```
+### Configuration file
 
-The container mounts `config.yaml` read-only and persists state under
+The container mounts the configuration file set in the `DOCKER_CONFIG` environment var set in `.env` such as `DOCKER_CONFIG=./storage/config/docker-config.yaml` and persists state under
 `./storage/state`.
+
+
+### tsdproxy
+
+Labels are set by default in `compose.yml` for [tsdproxy](https://almeidapaulopt.github.io/tsdproxy/docs/).
+This only matters if you use `tsdproxy` and [tailscale](https://tailscale.com/).
+
+```yml
+labels:
+  tsdproxy.enable: "true"
+  tsdproxy.name: "lms-passthrough"
+  tsdproxy.ephemeral: "true"
+```
