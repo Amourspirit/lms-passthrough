@@ -181,8 +181,7 @@ pyrightconfig.json
 
 storage
 **/storage
-state
-**/state
+/state
 .scratch
 **/.scratch
 tmp/
