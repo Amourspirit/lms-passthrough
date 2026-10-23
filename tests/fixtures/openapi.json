@@ -1130,13 +1130,75 @@
         "title": "InputItem",
         "description": "A single user/assistant message-style item in an `input` list."
       },
-      "JevAnswer": {
+      "JevAsset": {
+        "properties": {
+          "type": {
+            "anyOf": [
+              {
+                "type": "string",
+                "const": "image"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Type"
+          },
+          "format": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "png",
+                  "jpg",
+                  "jpeg"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Format"
+          },
+          "data_base64": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Data Base64"
+          },
+          "part": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Part"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "JevAsset",
+        "description": "An image that replaces its placeholder in ``state`` or a question."
+      },
+      "JevBoxAnswer": {
         "properties": {
           "type": {
             "type": "string",
+            "const": "box",
             "title": "Type"
           },
-          "noul": {
+          "box": {
+            "$ref": "#/components/schemas/JevBoxCoordinates"
+          },
+          "confidence": {
             "anyOf": [
               {
                 "type": "number"
@@ -1145,18 +1207,191 @@
                 "type": "null"
               }
             ],
-            "title": "Noul"
+            "title": "Confidence"
           }
         },
-        "additionalProperties": true,
+        "type": "object",
+        "required": [
+          "type",
+          "box"
+        ],
+        "title": "JevBoxAnswer"
+      },
+      "JevBoxCoordinates": {
+        "properties": {
+          "top": {
+            "type": "number",
+            "title": "Top"
+          },
+          "bottom": {
+            "type": "number",
+            "title": "Bottom"
+          },
+          "left": {
+            "type": "number",
+            "title": "Left"
+          },
+          "right": {
+            "type": "number",
+            "title": "Right"
+          }
+        },
+        "type": "object",
+        "required": [
+          "top",
+          "bottom",
+          "left",
+          "right"
+        ],
+        "title": "JevBoxCoordinates"
+      },
+      "JevBoxQuestion": {
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "box",
+            "title": "Type"
+          },
+          "instructions": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "items": {},
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Instructions"
+          }
+        },
+        "additionalProperties": false,
         "type": "object",
         "required": [
           "type"
         ],
-        "title": "JevAnswer",
-        "description": "One answer keyed by the question name supplied in the request.\n\n``type`` matches the question type. Extra fields are allowed because the\nupstream may return type-specific values (for example ``choice`` or\n``score``) beyond the documented ``noul`` probability."
+        "title": "JevBoxQuestion",
+        "description": "Locate what ``instructions`` describe in the request's image."
       },
-      "JevCriteria": {
+      "JevChoiceAnswer": {
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "choice",
+            "title": "Type"
+          },
+          "choice": {
+            "type": "string",
+            "title": "Choice"
+          },
+          "confidence": {
+            "type": "number",
+            "title": "Confidence"
+          },
+          "probabilities": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "type": "object",
+            "title": "Probabilities"
+          }
+        },
+        "type": "object",
+        "required": [
+          "type",
+          "choice",
+          "confidence",
+          "probabilities"
+        ],
+        "title": "JevChoiceAnswer"
+      },
+      "JevChoiceQuestion": {
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "choice",
+            "title": "Type"
+          },
+          "instructions": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "items": {},
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Instructions"
+          },
+          "criteria": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "additionalProperties": true,
+                  "type": "object"
+                },
+                {
+                  "items": {},
+                  "type": "array"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "type": "object",
+            "maxProperties": 255,
+            "minProperties": 1,
+            "title": "Criteria"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "type",
+          "criteria"
+        ],
+        "title": "JevChoiceQuestion",
+        "description": "Select one option from the choices in ``criteria``."
+      },
+      "JevNoulAnswer": {
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "noul",
+            "title": "Type"
+          },
+          "noul": {
+            "type": "number",
+            "title": "Noul"
+          }
+        },
+        "type": "object",
+        "required": [
+          "type",
+          "noul"
+        ],
+        "title": "JevNoulAnswer"
+      },
+      "JevNoulCriteria": {
         "properties": {
           "true": {
             "anyOf": [
@@ -1199,19 +1434,14 @@
         },
         "additionalProperties": false,
         "type": "object",
-        "title": "JevCriteria",
-        "description": "Optional criteria clarifying what counts as true/false for a question."
+        "title": "JevNoulCriteria",
+        "description": "Criteria clarifying what counts as a yes or no answer."
       },
-      "JevQuestion": {
+      "JevNoulQuestion": {
         "properties": {
           "type": {
             "type": "string",
-            "enum": [
-              "noul",
-              "choice",
-              "score",
-              "box"
-            ],
+            "const": "noul",
             "title": "Type"
           },
           "instructions": {
@@ -1226,6 +1456,9 @@
               {
                 "items": {},
                 "type": "array"
+              },
+              {
+                "type": "null"
               }
             ],
             "title": "Instructions"
@@ -1233,7 +1466,7 @@
           "criteria": {
             "anyOf": [
               {
-                "$ref": "#/components/schemas/JevCriteria"
+                "$ref": "#/components/schemas/JevNoulCriteria"
               },
               {
                 "type": "null"
@@ -1244,11 +1477,10 @@
         "additionalProperties": false,
         "type": "object",
         "required": [
-          "type",
-          "instructions"
+          "type"
         ],
-        "title": "JevQuestion",
-        "description": "A single typed question about the request ``state``."
+        "title": "JevNoulQuestion",
+        "description": "A yes/no question or statement, answered with the probability of yes."
       },
       "JevRequest": {
         "properties": {
@@ -1276,17 +1508,43 @@
           },
           "questions": {
             "additionalProperties": {
-              "$ref": "#/components/schemas/JevQuestion"
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/JevNoulQuestion"
+                },
+                {
+                  "$ref": "#/components/schemas/JevChoiceQuestion"
+                },
+                {
+                  "$ref": "#/components/schemas/JevScoreQuestion"
+                },
+                {
+                  "$ref": "#/components/schemas/JevBoxQuestion"
+                }
+              ],
+              "discriminator": {
+                "propertyName": "type",
+                "mapping": {
+                  "box": "#/components/schemas/JevBoxQuestion",
+                  "choice": "#/components/schemas/JevChoiceQuestion",
+                  "noul": "#/components/schemas/JevNoulQuestion",
+                  "score": "#/components/schemas/JevScoreQuestion"
+                }
+              }
             },
             "type": "object",
+            "minProperties": 1,
             "title": "Questions",
             "description": "Question id -> typed question."
           },
           "assets": {
             "anyOf": [
               {
-                "additionalProperties": true,
-                "type": "object"
+                "additionalProperties": {
+                  "$ref": "#/components/schemas/JevAsset"
+                },
+                "type": "object",
+                "minProperties": 1
               },
               {
                 "type": "null"
@@ -1314,7 +1572,29 @@
           },
           "answers": {
             "additionalProperties": {
-              "$ref": "#/components/schemas/JevAnswer"
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/JevNoulAnswer"
+                },
+                {
+                  "$ref": "#/components/schemas/JevChoiceAnswer"
+                },
+                {
+                  "$ref": "#/components/schemas/JevScoreAnswer"
+                },
+                {
+                  "$ref": "#/components/schemas/JevBoxAnswer"
+                }
+              ],
+              "discriminator": {
+                "propertyName": "type",
+                "mapping": {
+                  "box": "#/components/schemas/JevBoxAnswer",
+                  "choice": "#/components/schemas/JevChoiceAnswer",
+                  "noul": "#/components/schemas/JevNoulAnswer",
+                  "score": "#/components/schemas/JevScoreAnswer"
+                }
+              }
             },
             "type": "object",
             "title": "Answers"
@@ -1331,7 +1611,116 @@
           "usage"
         ],
         "title": "JevResponse",
-        "description": "The documented JEV response body."
+        "description": "The documented JEV response body (returned unchanged by the route)."
+      },
+      "JevScoreAnswer": {
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "score",
+            "title": "Type"
+          },
+          "score": {
+            "type": "number",
+            "title": "Score"
+          },
+          "confidence": {
+            "type": "number",
+            "title": "Confidence"
+          },
+          "legend": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "additionalProperties": true,
+                  "type": "object"
+                },
+                {
+                  "items": {},
+                  "type": "array"
+                }
+              ]
+            },
+            "type": "object",
+            "title": "Legend"
+          },
+          "probabilities": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "type": "object",
+            "title": "Probabilities"
+          }
+        },
+        "type": "object",
+        "required": [
+          "type",
+          "score",
+          "confidence",
+          "legend",
+          "probabilities"
+        ],
+        "title": "JevScoreAnswer"
+      },
+      "JevScoreQuestion": {
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "score",
+            "title": "Type"
+          },
+          "instructions": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "items": {},
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Instructions"
+          },
+          "criteria": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "additionalProperties": true,
+                  "type": "object"
+                },
+                {
+                  "items": {},
+                  "type": "array"
+                }
+              ]
+            },
+            "type": "array",
+            "maxItems": 10,
+            "minItems": 1,
+            "title": "Criteria"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "type",
+          "criteria"
+        ],
+        "title": "JevScoreQuestion",
+        "description": "Rate the content against ordered levels in ``criteria``."
       },
       "JevUsage": {
         "properties": {

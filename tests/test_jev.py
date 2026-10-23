@@ -21,35 +21,49 @@ LMS = "http://mock-lms:8999"
 JEV_KEY_ENV = "LMS_PT_TEST_JEV_KEY"
 PATHS = ["/api/v1/systemone", "/v1/systemone"]
 
+# The exact payload shape from the TypeSafe System One docs: every question
+# type has its own ``criteria`` shape (choice: mapping, score: ordered list).
 EXAMPLE: dict[str, Any] = {
     "model": "jev-latest",
     "state": "I was charged twice for my subscription this month. Please refund the extra charge.",
     "questions": {
-        "billing": {
-            "type": "noul",
-            "instructions": "Is this message about billing?",
-        },
         "route": {
             "type": "choice",
             "instructions": "Which team should handle this?",
-            "criteria": {"true": "billing", "false": "other"},
+            "criteria": {"billing": None, "shipping": None, "technical": None},
+        },
+        "angry": {
+            "type": "noul",
+            "instructions": "Is the customer angry?",
+        },
+        "urgency": {
+            "type": "score",
+            "instructions": "How urgent is this?",
+            "criteria": ["can wait", "this week", "today", "right now"],
         },
     },
-    "assets": {"image_1": {"url": "https://example.com/receipt.png"}},
 }
 
 RESPONSE: dict[str, Any] = {
+    "id": "shim-1792786975876",
     "model": "jev-latest",
     "answers": {
-        "billing": {"type": "noul", "noul": 0.98},
         "route": {
             "type": "choice",
             "choice": "billing",
-            "confidence": 0.91,
-            "probabilities": {"billing": 0.91, "other": 0.09},
+            "probabilities": {"billing": 0.9998, "shipping": 0.0001, "technical": 0.0001},
+            "confidence": 0.9996,
+        },
+        "angry": {"type": "noul", "noul": 0.6371},
+        "urgency": {
+            "type": "score",
+            "score": 2.0878,
+            "legend": {"0": "can wait", "1": "this week", "2": "today", "3": "right now"},
+            "probabilities": {"0": 0.0023, "1": 0.1155, "2": 0.6743, "3": 0.2079},
+            "confidence": 0.6719,
         },
     },
-    "usage": {"input_tokens": 120, "output_tokens": 12},
+    "usage": {"input_tokens": 239, "output_tokens": 0},
 }
 
 
@@ -97,11 +111,48 @@ def test_example_round_trip(tmp_path: Path, path: str) -> None:
     assert response.json() == RESPONSE
     assert response.headers["x-lms-provider"] == "system1-jev"
     sent = json.loads(seen[0].content)
-    # The public model id is mapped to the upstream id; assets survive.
+    # The public model id is mapped to the upstream id; per-type criteria survive.
     assert sent == {**EXAMPLE, "model": "jev-upstream"}
     assert seen[0].headers["cf-access-client-id"] == "cf-id"
     assert seen[0].headers["cf-access-client-secret"] == "cf-secret"
     assert "authorization" not in seen[0].headers
+
+
+def test_noul_instructions_are_optional(tmp_path: Path) -> None:
+    body = {"model": "jev-latest", "state": "s", "questions": {"q": {"type": "noul"}}}
+    seen: list[httpx.Request] = []
+    with respx.mock() as router:
+        router.post(f"{JEV}/v1/systemone").mock(
+            side_effect=capture(seen, httpx.Response(200, json=RESPONSE))
+        )
+        response = TestClient(make_app(tmp_path, SYSTEM1_JEV)).post(PATHS[0], json=body)
+    assert response.status_code == 200
+    assert json.loads(seen[0].content) == {**body, "model": "jev-upstream"}
+
+
+def test_assets_and_box_question(tmp_path: Path) -> None:
+    body = {
+        "model": "jev-latest",
+        "state": "photo",
+        "questions": {
+            "red_rectangle": {"type": "box", "instructions": "Locate the red rectangle."}
+        },
+        "assets": {
+            "photo": {
+                "type": "image",
+                "format": "png",
+                "data_base64": "iVBORw0KGgo=",
+            }
+        },
+    }
+    seen: list[httpx.Request] = []
+    with respx.mock() as router:
+        router.post(f"{JEV}/v1/systemone").mock(
+            side_effect=capture(seen, httpx.Response(200, json=RESPONSE))
+        )
+        response = TestClient(make_app(tmp_path, SYSTEM1_JEV)).post(PATHS[0], json=body)
+    assert response.status_code == 200
+    assert json.loads(seen[0].content) == {**body, "model": "jev-upstream"}
 
 
 def test_api_key_sent_as_bearer(tmp_path: Path) -> None:
@@ -133,12 +184,21 @@ def test_api_key_sent_as_bearer(tmp_path: Path) -> None:
         },
         {
             **EXAMPLE,
-            "questions": {"q": {"type": "noul"}},
+            "questions": {"q": {"type": "choice", "instructions": "?"}},
+        },
+        {
+            **EXAMPLE,
+            "questions": {"q": {"type": "score", "instructions": "?", "criteria": "one"}},
+        },
+        {
+            **EXAMPLE,
+            "questions": {"q": {"type": "score", "instructions": "?", "criteria": []}},
         },
         {
             **EXAMPLE,
             "questions": {"q": {"type": "noul", "instructions": "?", "extra": 1}},
         },
+        {**EXAMPLE, "questions": {}},
     ],
 )
 def test_invalid_request_is_422(tmp_path: Path, body: dict[str, Any]) -> None:

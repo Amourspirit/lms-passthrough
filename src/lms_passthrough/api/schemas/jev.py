@@ -1,38 +1,76 @@
 """System 1 JEV ``/v1/systemone`` HTTP request/response schemas.
 
-The request is validated strictly (``extra="forbid"``) so typos in question
-definitions fail at the HTTP boundary. The response mirrors the documented
-upstream shape; the route returns the upstream body unchanged, so these models
-exist for OpenAPI docs rather than response validation.
+The request is validated strictly (``extra="forbid"``) against the official
+TypeSafe System One schema: each question type has its own ``criteria`` shape.
+The route returns the upstream body unchanged, so the response models exist for
+OpenAPI docs rather than response validation.
 """
 
 from __future__ import annotations
 
-from typing import Any, Literal
+from typing import Annotated, Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
 Context = str | dict[str, Any] | list[Any]
-QuestionType = Literal["noul", "choice", "score", "box"]
 
 
 class _Strict(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
 
-class JevCriteria(_Strict):
-    """Optional criteria clarifying what counts as true/false for a question."""
+class JevNoulCriteria(_Strict):
+    """Criteria clarifying what counts as a yes or no answer."""
 
     true: Context | None = None
     false: Context | None = None
 
 
-class JevQuestion(_Strict):
-    """A single typed question about the request ``state``."""
+class JevNoulQuestion(_Strict):
+    """A yes/no question or statement, answered with the probability of yes."""
 
-    type: QuestionType
-    instructions: Context
-    criteria: JevCriteria | None = None
+    type: Literal["noul"]
+    instructions: Context | None = None
+    criteria: JevNoulCriteria | None = None
+
+
+class JevChoiceQuestion(_Strict):
+    """Select one option from the choices in ``criteria``."""
+
+    type: Literal["choice"]
+    instructions: Context | None = None
+    # Values may be null: the reference server accepts `{"billing": null}`.
+    criteria: dict[str, Context | None] = Field(min_length=1, max_length=255)
+
+
+class JevScoreQuestion(_Strict):
+    """Rate the content against ordered levels in ``criteria``."""
+
+    type: Literal["score"]
+    instructions: Context | None = None
+    criteria: list[Context] = Field(min_length=1, max_length=10)
+
+
+class JevBoxQuestion(_Strict):
+    """Locate what ``instructions`` describe in the request's image."""
+
+    type: Literal["box"]
+    instructions: Context | None = None
+
+
+Question = Annotated[
+    JevNoulQuestion | JevChoiceQuestion | JevScoreQuestion | JevBoxQuestion,
+    Field(discriminator="type"),
+]
+
+
+class JevAsset(_Strict):
+    """An image that replaces its placeholder in ``state`` or a question."""
+
+    type: Literal["image"] | None = None
+    format: Literal["png", "jpg", "jpeg"] | None = None
+    data_base64: str | None = None
+    part: str | None = None
 
 
 class JevRequest(_Strict):
@@ -40,27 +78,54 @@ class JevRequest(_Strict):
 
     model: str = Field(description="Name or alias of the JEV model to use.")
     state: Context = Field(description="Content all questions in this request refer to.")
-    questions: dict[str, JevQuestion] = Field(
-        description="Question id -> typed question."
+    questions: dict[str, Question] = Field(
+        min_length=1,
+        description="Question id -> typed question.",
     )
-    assets: dict[str, Any] | None = Field(
+    assets: dict[str, JevAsset] | None = Field(
         default=None,
+        min_length=1,
         description="Optional media assets keyed by opaque placeholders.",
     )
 
 
-class JevAnswer(BaseModel):
-    """One answer keyed by the question name supplied in the request.
+class JevNoulAnswer(BaseModel):
+    type: Literal["noul"]
+    noul: float
 
-    ``type`` matches the question type. Extra fields are allowed because the
-    upstream may return type-specific values (for example ``choice`` or
-    ``score``) beyond the documented ``noul`` probability.
-    """
 
-    model_config = ConfigDict(extra="allow")
+class JevChoiceAnswer(BaseModel):
+    type: Literal["choice"]
+    choice: str
+    confidence: float
+    probabilities: dict[str, float]
 
-    type: str
-    noul: float | None = None
+
+class JevScoreAnswer(BaseModel):
+    type: Literal["score"]
+    score: float
+    confidence: float
+    legend: dict[str, Context]
+    probabilities: dict[str, float]
+
+
+class JevBoxCoordinates(BaseModel):
+    top: float
+    bottom: float
+    left: float
+    right: float
+
+
+class JevBoxAnswer(BaseModel):
+    type: Literal["box"]
+    box: JevBoxCoordinates
+    confidence: float | None = None
+
+
+Answer = Annotated[
+    JevNoulAnswer | JevChoiceAnswer | JevScoreAnswer | JevBoxAnswer,
+    Field(discriminator="type"),
+]
 
 
 class JevUsage(BaseModel):
@@ -73,10 +138,10 @@ class JevUsage(BaseModel):
 
 
 class JevResponse(BaseModel):
-    """The documented JEV response body."""
+    """The documented JEV response body (returned unchanged by the route)."""
 
     model_config = ConfigDict(extra="allow")
 
     model: str
-    answers: dict[str, JevAnswer]
+    answers: dict[str, Answer]
     usage: JevUsage
