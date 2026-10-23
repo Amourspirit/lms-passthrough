@@ -18,13 +18,7 @@ services:
     volumes:
       - ${DOCKER_CONFIG:-./storage/config/docker-config.yaml}:/app/config.yaml:ro
       - ./storage/state:/app/state
-    networks:
-      - fabric-net
     labels:
       tsdproxy.enable: "true"
       tsdproxy.name: "lms-passthrough"
       tsdproxy.ephemeral: "true"
-
-networks:
-  fabric-net:
-    external: true
