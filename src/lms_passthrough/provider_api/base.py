@@ -22,6 +22,7 @@ class Capability(StrEnum):
     STATE = "state"
     TRANSCRIPTIONS = "transcriptions"
     DECISIONS = "decisions"
+    JEV = "jev"
 
 
 class CanonicalMessage(dict[str, Any]):

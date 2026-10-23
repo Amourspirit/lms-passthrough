@@ -42,6 +42,7 @@ class ProviderConfig(BaseModel):
         "one_min_chat",
         "one_min_code_generator",
         "system1_decision",
+        "system1_jev",
     ]
     base_url: str
     api_key_env: str | None = None

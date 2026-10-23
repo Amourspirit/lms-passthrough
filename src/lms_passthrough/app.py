@@ -30,6 +30,7 @@ from lms_passthrough.api.compat import (
 from lms_passthrough.api.passthrough import filter_headers
 from lms_passthrough.api.schemas.decisions import DecisionsRequest, DecisionsResponse
 from lms_passthrough.api.schemas.embeddings import EmbeddingsRequest, EmbeddingsResponse
+from lms_passthrough.api.schemas.jev import JevRequest, JevResponse
 from lms_passthrough.api.schemas.lm_studio import LMSChatRequest, LMSChatResponse
 from lms_passthrough.api.schemas.openai_chat import (
     OpenAIChatCompletionRequest,
@@ -66,6 +67,7 @@ from lms_passthrough.providers.lm_studio import LMStudioProvider
 from lms_passthrough.providers.one_min import OneMinChatProvider, OneMinCodeGeneratorProvider
 from lms_passthrough.providers.openai_compatible import OpenAICompatibleProvider
 from lms_passthrough.providers.system1_decision import System1DecisionProvider
+from lms_passthrough.providers.system1_jev import System1JevProvider
 from lms_passthrough.state.store import StateStore, StoredResponse
 
 READY_OK_MAX = 500
@@ -146,6 +148,14 @@ class AppState:
                 )
             elif provider.kind == "system1_decision":
                 self.providers[provider.name] = System1DecisionProvider(
+                    provider.name,
+                    provider.base_url,
+                    client,
+                    api_key,
+                    extra_headers=provider.extra_headers,
+                )
+            elif provider.kind == "system1_jev":
+                self.providers[provider.name] = System1JevProvider(
                     provider.name,
                     provider.base_url,
                     client,
@@ -337,12 +347,14 @@ def create_app(config_path: Path | None = None) -> FastAPI:
                     order.append(name)
         return order
 
-    def decision_candidates(request: Request) -> list[str]:
-        """Candidate providers for `/decisions`.
+    def capability_candidates(
+        request: Request, capability: Capability, description: str
+    ) -> list[str]:
+        """Candidate providers declaring `capability`.
 
-        Routed by capability, not model (`model` is optional in `jev_decide`):
-        a header still pins; otherwise config order picks the first provider
-        declaring `DECISIONS`, and `failover` widens to all available ones.
+        Routed by capability, not model: a header still pins; otherwise config
+        order picks the first provider declaring the capability, and `failover`
+        widens to all available ones.
         """
         header_provider = request.headers.get("x-lms-provider")
         if header_provider:
@@ -350,10 +362,10 @@ def create_app(config_path: Path | None = None) -> FastAPI:
                 raise HTTPException(
                     status_code=400, detail=f"Unknown provider: {header_provider}"
                 )
-            if Capability.DECISIONS not in state.providers[header_provider].info.capabilities:
+            if capability not in state.providers[header_provider].info.capabilities:
                 raise HTTPException(
                     status_code=400,
-                    detail=f"Provider {header_provider} does not support decisions",
+                    detail=f"Provider {header_provider} does not support {description}",
                 )
             if state.is_down(header_provider):
                 raise HTTPException(
@@ -363,19 +375,28 @@ def create_app(config_path: Path | None = None) -> FastAPI:
         capable = [
             p.name
             for p in config.providers
-            if Capability.DECISIONS in state.providers[p.name].info.capabilities
+            if capability in state.providers[p.name].info.capabilities
         ]
         if not capable:
             raise HTTPException(
-                status_code=400, detail="No configured provider supports decisions"
+                status_code=400,
+                detail=f"No configured provider supports {description}",
             )
         available = [name for name in capable if not state.is_down(name)]
         if not available:
             raise HTTPException(
                 status_code=503,
-                detail=f"No available decisions provider; unavailable: {', '.join(capable)}",
+                detail=f"No available {description} provider; unavailable: {', '.join(capable)}",
             )
         return available if config.failover else available[:1]
+
+    def decision_candidates(request: Request) -> list[str]:
+        """Candidate providers for `/decisions` (`model` is optional in `jev_decide`)."""
+        return capability_candidates(request, Capability.DECISIONS, "decisions")
+
+    def jev_candidates(request: Request) -> list[str]:
+        """Candidate providers for `/systemone`."""
+        return capability_candidates(request, Capability.JEV, "JEV system-one")
 
     async def dispatch(
         request: Request,
@@ -1156,6 +1177,28 @@ def create_app(config_path: Path | None = None) -> FastAPI:
                 body = {**body, "model": map_model(name, str(body["model"]))}
             async with state.limiters[name].slot():
                 return await provider.decisions(body)
+
+        _provider_name, _provider, result = await dispatch(request, candidates, call)
+        return JSONResponse(result)
+
+    @app.post("/api/v1/systemone", response_model=JevResponse)
+    @app.post("/v1/systemone", response_model=JevResponse)
+    async def systemone(request: Request, request_model: JevRequest) -> Any:
+        """System 1 JEV ``/v1/systemone`` route.
+
+        The request is validated against the JEV schema; the upstream response
+        is returned unchanged (mirroring the ``/decisions`` route).
+        """
+        await authenticate(request)
+        candidates = jev_candidates(request)
+        payload = request_model.model_dump(mode="json", exclude_unset=True)
+
+        async def call(name: str, provider: Any) -> Any:
+            body = payload
+            if body.get("model"):
+                body = {**body, "model": map_model(name, str(body["model"]))}
+            async with state.limiters[name].slot():
+                return await provider.jev(body)
 
         _provider_name, _provider, result = await dispatch(request, candidates, call)
         return JSONResponse(result)

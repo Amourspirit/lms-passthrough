@@ -382,6 +382,84 @@
           }
         }
       }
+    },
+    "/v1/systemone": {
+      "post": {
+        "summary": "Systemone",
+        "description": "System 1 JEV ``/v1/systemone`` route.\n\nThe request is validated against the JEV schema; the upstream response\nis returned unchanged (mirroring the ``/decisions`` route).",
+        "operationId": "systemone_v1_systemone_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/JevRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JevResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/systemone": {
+      "post": {
+        "summary": "Systemone",
+        "description": "System 1 JEV ``/v1/systemone`` route.\n\nThe request is validated against the JEV schema; the upstream response\nis returned unchanged (mirroring the ``/decisions`` route).",
+        "operationId": "systemone_api_v1_systemone_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/JevRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JevResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -1051,6 +1129,229 @@
         "type": "object",
         "title": "InputItem",
         "description": "A single user/assistant message-style item in an `input` list."
+      },
+      "JevAnswer": {
+        "properties": {
+          "type": {
+            "type": "string",
+            "title": "Type"
+          },
+          "noul": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Noul"
+          }
+        },
+        "additionalProperties": true,
+        "type": "object",
+        "required": [
+          "type"
+        ],
+        "title": "JevAnswer",
+        "description": "One answer keyed by the question name supplied in the request.\n\n``type`` matches the question type. Extra fields are allowed because the\nupstream may return type-specific values (for example ``choice`` or\n``score``) beyond the documented ``noul`` probability."
+      },
+      "JevCriteria": {
+        "properties": {
+          "true": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "items": {},
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "True"
+          },
+          "false": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "items": {},
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "False"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "JevCriteria",
+        "description": "Optional criteria clarifying what counts as true/false for a question."
+      },
+      "JevQuestion": {
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "noul",
+              "choice",
+              "score",
+              "box"
+            ],
+            "title": "Type"
+          },
+          "instructions": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "items": {},
+                "type": "array"
+              }
+            ],
+            "title": "Instructions"
+          },
+          "criteria": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/JevCriteria"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "type",
+          "instructions"
+        ],
+        "title": "JevQuestion",
+        "description": "A single typed question about the request ``state``."
+      },
+      "JevRequest": {
+        "properties": {
+          "model": {
+            "type": "string",
+            "title": "Model",
+            "description": "Name or alias of the JEV model to use."
+          },
+          "state": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "items": {},
+                "type": "array"
+              }
+            ],
+            "title": "State",
+            "description": "Content all questions in this request refer to."
+          },
+          "questions": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/JevQuestion"
+            },
+            "type": "object",
+            "title": "Questions",
+            "description": "Question id -> typed question."
+          },
+          "assets": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Assets",
+            "description": "Optional media assets keyed by opaque placeholders."
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "model",
+          "state",
+          "questions"
+        ],
+        "title": "JevRequest",
+        "description": "The ``/api/v1/systemone`` request body."
+      },
+      "JevResponse": {
+        "properties": {
+          "model": {
+            "type": "string",
+            "title": "Model"
+          },
+          "answers": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/JevAnswer"
+            },
+            "type": "object",
+            "title": "Answers"
+          },
+          "usage": {
+            "$ref": "#/components/schemas/JevUsage"
+          }
+        },
+        "additionalProperties": true,
+        "type": "object",
+        "required": [
+          "model",
+          "answers",
+          "usage"
+        ],
+        "title": "JevResponse",
+        "description": "The documented JEV response body."
+      },
+      "JevUsage": {
+        "properties": {
+          "input_tokens": {
+            "type": "integer",
+            "title": "Input Tokens"
+          },
+          "output_tokens": {
+            "type": "integer",
+            "title": "Output Tokens"
+          }
+        },
+        "additionalProperties": true,
+        "type": "object",
+        "required": [
+          "input_tokens",
+          "output_tokens"
+        ],
+        "title": "JevUsage",
+        "description": "Billable token usage reported by the upstream."
       },
       "LMSChatOutput": {
         "properties": {

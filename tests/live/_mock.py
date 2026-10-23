@@ -124,10 +124,18 @@ def register_mock_upstream(
     *,
     base_url: str = "http://mock-upstream:8999",
     catalog: dict[str, object] | None = None,
+    catalog_body: bytes | None = None,
     unknown_model_status: int = 400,
 ) -> respx.MockRouter:
-    """Register respx routes emulating an LM Studio server."""
-    catalog_body = json.dumps(catalog if catalog is not None else MODEL_CATALOG).encode("utf-8")
+    """Register respx routes emulating an LM Studio server.
+
+    ``catalog_body`` lets a caller replay bytes verbatim (for byte-equivalence
+    tests); otherwise ``catalog`` is serialized compactly.
+    """
+    if catalog_body is None:
+        catalog_body = json.dumps(
+            catalog if catalog is not None else MODEL_CATALOG
+        ).encode("utf-8")
 
     def handle_chat(request: httpx.Request) -> httpx.Response:
         payload = json.loads(request.content or b"{}")

@@ -138,7 +138,7 @@ def test_captured_fixture_models_byte_equivalent(tmp_path: Path) -> None:
     assert "models" in catalog
 
     app = build_proxy_app(tmp_path, MOCK_BASE)
-    with register_mock_upstream(base_url=MOCK_BASE, catalog=catalog):
+    with register_mock_upstream(base_url=MOCK_BASE, catalog=catalog, catalog_body=body):
         client = TestClient(app)
         response = client.get("/api/v1/models")
     assert response.status_code == 200

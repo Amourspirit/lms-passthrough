@@ -6,22 +6,26 @@ from typing import Any
 
 from lms_passthrough.provider_api import Capability, ProviderUnsupportedError
 
+_ENDPOINT_CAPABILITIES = {
+    "/api/v1/chat": Capability.CHAT,
+    "/v1/chat/completions": Capability.CHAT,
+    "/v1/responses": Capability.RESPONSES,
+    "/v1/embeddings": Capability.EMBEDDINGS,
+    "/api/v1/models": Capability.MODELS,
+    "/v1/models": Capability.MODELS,
+    "/api/v1/decisions": Capability.DECISIONS,
+    "/v1/decisions": Capability.DECISIONS,
+    "/api/v1/systemone": Capability.JEV,
+    "/v1/systemone": Capability.JEV,
+}
+
 
 def required_capability_for_endpoint(path: str) -> Capability:
     """Map public endpoint to required provider capability."""
-    if path == "/api/v1/chat":
-        return Capability.CHAT
-    if path == "/v1/chat/completions":
-        return Capability.CHAT
-    if path == "/v1/responses":
-        return Capability.RESPONSES
-    if path == "/v1/embeddings":
-        return Capability.EMBEDDINGS
-    if path in {"/api/v1/models", "/v1/models"}:
-        return Capability.MODELS
-    if path in {"/api/v1/decisions", "/v1/decisions"}:
-        return Capability.DECISIONS
-    raise ProviderUnsupportedError(f"Unsupported endpoint: {path}")
+    try:
+        return _ENDPOINT_CAPABILITIES[path]
+    except KeyError:
+        raise ProviderUnsupportedError(f"Unsupported endpoint: {path}") from None
 
 
 def validate_request_features(provider: Any, payload: dict[str, Any]) -> None:

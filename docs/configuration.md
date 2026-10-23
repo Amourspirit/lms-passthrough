@@ -172,7 +172,7 @@ declares how the proxy connects to an upstream inference service.
 | Key | Type | Default | Description |
 | --- | --- | --- | --- |
 | `name` | `str` | _(required)_ | Unique identifier for the provider. Used in `X-LMS-Provider` header routing and as `default_provider` value. |
-| `kind` | `str` | _(required)_ | Built-in provider implementation. One of: `lm_studio`, `openai_compatible`, `one_min_chat`, `one_min_code_generator`, `system1_decision`. |
+| `kind` | `str` | _(required)_ | Built-in provider implementation. One of: `lm_studio`, `openai_compatible`, `one_min_chat`, `one_min_code_generator`, `system1_decision`, `system1_jev`. |
 | `base_url` | `str` | _(required)_ | Base URL of the upstream service. Must start with `http://` or `https://`. Trailing slashes are stripped. |
 | `api_key_env` | `str` \| `null` | `null` | Name of the environment variable holding the provider's API key. Required for `one_min_*` kinds; optional for `openai_compatible`; ignored for `lm_studio`. Missing at startup when required raises `ValueError`. |
 | `default_model` | `str` \| `null` | `null` | Default upstream model ID when no `models:` mappings are configured and no model is sent by the client. |
@@ -184,7 +184,7 @@ declares how the proxy connects to an upstream inference service.
 | `timeout` | `object` | _(see [Timeouts](#timeout))_ | Per-provider timeout overrides. |
 | `max_concurrent` | `int` \| `null` | `null` | Maximum concurrent inference calls. `null` (or non-positive) means unlimited. |
 | `queue_timeout_seconds` | `float` | `5.0` | Time to wait in the queue when at capacity before failing with `503`. Must be non-negative. |
-| `extra_headers` | `dict[str, str]` \| `null` | `null` | Additional headers forwarded with every upstream request (e.g. Cloudflare Access tokens), including the readiness probe. Honored on inference requests only by `openai_compatible`; other kinds ignore it there. |
+| `extra_headers` | `dict[str, str]` \| `null` | `null` | Additional headers forwarded with every upstream request (e.g. Cloudflare Access tokens), including the readiness probe. Honored on inference requests only by `openai_compatible`, `system1_decision`, and `system1_jev`; other kinds ignore it there. |
 
 ### Kind values
 
@@ -195,6 +195,7 @@ declares how the proxy connects to an upstream inference service.
 | `one_min_chat` | 1min.ai chat model. Real SSE streaming. Supports transcriptions. No tools, images, structured output, or embeddings. |
 | `one_min_code_generator` | 1min.ai code generator. Streaming synthesized from a completed response. No tools, images, structured output, embeddings, or transcriptions. |
 | `system1_decision` | JEV System 1 decision model. Only `/api/v1/decisions`; the upstream envelope is returned unchanged. |
+| `system1_jev` | JEV System 1 typed question answering. Only `/api/v1/systemone`; the upstream response is returned unchanged. |
 
 ### Model mappings
 

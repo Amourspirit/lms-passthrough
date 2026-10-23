@@ -3,8 +3,8 @@
 An unofficial, unaffiliated FastAPI service that presents an LM Studio- and
 OpenAI-compatible HTTP surface while routing each request to a configurable
 provider (a local LM Studio server, an OpenAI-compatible endpoint, 1min.ai, or a
-System 1 decision model). One inbound API, several possible backends, selected
-per request.
+System 1 decision/JEV model). One inbound API, several possible backends,
+selected per request.
 
 > Not affiliated with or endorsed by LM Studio, OpenAI, or 1min.ai.
 
@@ -12,7 +12,7 @@ per request.
 
 - Speaks the **LM Studio native** API (`/api/v1/*`) and the **OpenAI** API
   (`/v1/*`), including chat, responses, embeddings, speech-to-text, model
-  listing, and the JEV `/decisions` route.
+  listing, and the JEV `/decisions` and `/systemone` routes.
 - Routes by `X-LMS-Provider` header or by model discovery across providers.
 - Proxies the LM Studio paths **transparently** when the selected provider is
   `lm-studio` — bodies, headers, statuses, and streams pass through unchanged.
@@ -36,6 +36,7 @@ per request.
 | `POST` | `/v1/embeddings` | OpenAI embeddings. |
 | `POST` | `/v1/audio/transcriptions` | Speech-to-text (`json` and `text` formats only). |
 | `POST` | `/api/v1/decisions`, `/v1/decisions` | System 1 `jev_decide` decisions. |
+| `POST` | `/api/v1/systemone`, `/v1/systemone` | System 1 JEV typed question answering. |
 
 ## Providers
 
@@ -46,6 +47,7 @@ per request.
 | `one_min_chat` | 1min.ai chat, native SSE, supports transcriptions. |
 | `one_min_code_generator` | 1min.ai code generator; synthesized streaming. |
 | `system1_decision` | JEV `/decisions` only. |
+| `system1_jev` | JEV `/systemone` only. |
 
 ## Quick start
 

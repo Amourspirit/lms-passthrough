@@ -35,3 +35,12 @@ providers:
     models:
       - public: openjev
         upstream: openjev
+  - name: system1-jev
+    kind: system1_jev
+    base_url: https://dserver-3411.example.com
+    extra_headers:
+      CF-Access-Client-Id: ${CF_ACCESS_CLIENT_ID}
+      CF-Access-Client-Secret: ${CF_OMLX_TOKEN}
+    models:
+      - public: jev-latest
+        upstream: jev-latest
