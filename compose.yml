@@ -6,16 +6,8 @@ services:
     restart: unless-stopped
     ports:
       - "1234:1234"
-    environment:
-      - LMS_PASSTHROUGH_TOKEN=${LMS_PASSTHROUGH_TOKEN:-}
-      - OMLX_API_KEY=${OMLX_API_KEY:-}
-      - ONEMIN_API_KEY=${ONEMIN_API_KEY:-}
-      - ANDROID_API_KEY=${ANDROID_API_KEY:-}
-      - CF_ACCESS_CLIENT_ID=${CF_ACCESS_CLIENT_ID:-}
-      - CF_OMLX_TOKEN=${CF_OMLX_TOKEN:-}
-      - ONEMIN_CHAT_MODEL=${ONEMIN_CHAT_MODEL:-sonar}
-      - TOKENRA_API_KEY=${TOKENRA_API_KEY:-}
-      - JEV_API_KEY=${JEV_API_KEY:-}
+    env_file:
+      - .env
     volumes:
       - ${DOCKER_CONFIG:-./storage/config/docker-config.yaml}:/app/config.yaml:ro
       - ./storage/state:/app/state
