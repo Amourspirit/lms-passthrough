@@ -8,6 +8,7 @@ from typing import Any
 
 import httpx
 
+from lms_passthrough.logging import get_logger, provider_request_extra
 from lms_passthrough.provider_api import (
     CanonicalOutput,
     Capability,
@@ -24,6 +25,8 @@ from lms_passthrough.provider_api.streaming import synthesize_stream
 from lms_passthrough.providers.base import serialize_transcript
 
 HTTP_ERROR_THRESHOLD = 400
+
+logger = get_logger("one_min")
 
 
 class OneMinBaseProvider:
@@ -52,8 +55,13 @@ class OneMinBaseProvider:
         url = f"{self._base_url}{path}"
         if stream:
             url += "?isStreaming=true"
+        headers = self._headers()
+        logger.debug(
+            "provider request",
+            extra=provider_request_extra(self._name, "POST", url, headers=headers, body=payload),
+        )
         try:
-            response = await self._client.post(url, headers=self._headers(), json=payload)
+            response = await self._client.post(url, headers=headers, json=payload)
         except httpx.HTTPError as exc:
             raise ProviderUnavailableError(str(exc)) from exc
         if response.status_code >= HTTP_ERROR_THRESHOLD:
@@ -88,10 +96,27 @@ class OneMinBaseProvider:
         application/json`, which would override the multipart boundary httpx
         generates and produce an unparseable body upstream.
         """
+        headers = {"API-KEY": self._api_key}
+        logger.debug(
+            "provider request",
+            extra=provider_request_extra(
+                self._name,
+                "POST",
+                f"{self._base_url}{path}",
+                headers=headers,
+                body={
+                    "field": field,
+                    "filename": filename,
+                    "content_type": content_type,
+                    "audio_bytes": len(audio),
+                    "multipart": True,
+                },
+            ),
+        )
         try:
             response = await self._client.post(
                 f"{self._base_url}{path}",
-                headers={"API-KEY": self._api_key},
+                headers=headers,
                 files={field: (filename, audio, content_type or "application/octet-stream")},
             )
         except httpx.HTTPError as exc:
@@ -221,10 +246,15 @@ class OneMinChatProvider(OneMinBaseProvider):
         """Stream real 1min chat SSE, translated to canonical events."""
         payload = self._payload(request)
         url = f"{self._base_url}/api/chat-with-ai?isStreaming=true"
+        headers = self._headers()
+        logger.debug(
+            "provider request",
+            extra=provider_request_extra(self._name, "POST", url, headers=headers, body=payload),
+        )
         yield StreamEvent(event="chat.start", data={"type": "chat.start"})
         try:
             async with self._client.stream(
-                "POST", url, headers=self._headers(), json=payload
+                "POST", url, headers=headers, json=payload
             ) as response:
                 if response.status_code >= HTTP_ERROR_THRESHOLD:
                     await response.aread()

@@ -7,6 +7,7 @@ from typing import Any
 
 import httpx
 
+from lms_passthrough.logging import get_logger, provider_request_extra
 from lms_passthrough.provider_api import (
     CanonicalOutput,
     Capability,
@@ -22,6 +23,8 @@ from lms_passthrough.provider_api import (
 from lms_passthrough.provider_api.streaming import synthesize_stream
 
 HTTP_ERROR_THRESHOLD = 400
+
+logger = get_logger("openai_compatible")
 
 
 class OpenAICompatibleProvider:
@@ -60,6 +63,12 @@ class OpenAICompatibleProvider:
         headers.update(self._extra_headers)
         if self._api_key:
             headers["Authorization"] = f"Bearer {self._api_key}"
+        logger.debug(
+            "provider request",
+            extra=provider_request_extra(
+                self._name, "POST", f"{self._base_url}{path}", headers=headers, body=payload
+            ),
+        )
         try:
             response = await self._client.post(
                 f"{self._base_url}{path}",

@@ -7,6 +7,7 @@ from typing import Any
 
 import httpx
 
+from lms_passthrough.logging import get_logger, provider_request_extra
 from lms_passthrough.provider_api import (
     Capability,
     ChatRequest,
@@ -21,6 +22,8 @@ from lms_passthrough.provider_api import (
 )
 
 HTTP_ERROR_THRESHOLD = 400
+
+logger = get_logger("system1_jev")
 
 
 class System1JevProvider:
@@ -46,6 +49,16 @@ class System1JevProvider:
         return ProviderInfo(name=self._name, capabilities={Capability.JEV})
 
     async def jev(self, payload: dict[str, Any]) -> dict[str, Any]:
+        logger.debug(
+            "provider request",
+            extra=provider_request_extra(
+                self._name,
+                "POST",
+                f"{self._base_url}/v1/systemone",
+                headers=self._headers,
+                body=payload,
+            ),
+        )
         try:
             response = await self._client.post(
                 f"{self._base_url}/v1/systemone", json=payload, headers=self._headers

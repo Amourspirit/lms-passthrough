@@ -8,6 +8,7 @@ from typing import Any
 
 import httpx
 
+from lms_passthrough.logging import get_logger, provider_request_extra
 from lms_passthrough.provider_api import (
     Capability,
     ChatRequest,
@@ -21,6 +22,8 @@ from lms_passthrough.provider_api import (
 )
 
 HTTP_ERROR_THRESHOLD = 400
+
+logger = get_logger("lm_studio")
 
 
 class LMStudioProvider:
@@ -56,6 +59,12 @@ class LMStudioProvider:
         json_body: dict[str, Any] | None = None,
         headers: dict[str, str] | None = None,
     ) -> httpx.Response:
+        logger.debug(
+            "provider request",
+            extra=provider_request_extra(
+                self._name, method, f"{self._base_url}{path}", headers=headers, body=json_body
+            ),
+        )
         try:
             response = await self._client.request(
                 method,
@@ -95,6 +104,15 @@ class LMStudioProvider:
     async def stream_chat(self, request: ChatRequest) -> AsyncIterator[StreamEvent]:
         """Incrementally parse the upstream native SSE stream."""
         body = {**request.raw, "stream": True}
+        logger.debug(
+            "provider request",
+            extra=provider_request_extra(
+                self._name,
+                "POST",
+                f"{self._base_url}/api/v1/chat",
+                body=body,
+            ),
+        )
         try:
             async with self._client.stream(
                 "POST",

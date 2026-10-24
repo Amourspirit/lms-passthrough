@@ -107,3 +107,29 @@ def setup_logging(config: LoggingConfig) -> None:
 def get_logger(name: str) -> logging.Logger:
     """Return a child logger under the package namespace."""
     return logging.getLogger(f"lms_passthrough.{name}")
+
+
+def provider_request_extra(
+    provider: str,
+    method: str,
+    url: str,
+    headers: dict[str, str] | None = None,
+    body: Any = None,
+) -> dict[str, Any]:
+    """Build the ``extra`` mapping for a provider-outbound request debug log.
+
+    Headers go under ``redact`` so secret header values (e.g. ``Authorization``)
+    are replaced with ``[REDACTED]`` by :class:`RedactingFilter`. The request
+    ``body`` is logged as-is so operators can inspect the exact payload sent
+    upstream when logging is at DEBUG level.
+    """
+    extra: dict[str, Any] = {
+        "provider": provider,
+        "method": method,
+        "url": url,
+    }
+    if headers is not None:
+        extra["redact"] = dict(headers)
+    if body is not None:
+        extra["body"] = body
+    return extra

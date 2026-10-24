@@ -51,7 +51,7 @@ from lms_passthrough.api.schemas.translate import (
 )
 from lms_passthrough.concurrency import ProviderLimiter
 from lms_passthrough.config import AppConfig, load_config_or_default
-from lms_passthrough.logging import get_logger, setup_logging
+from lms_passthrough.logging import get_logger, provider_request_extra, setup_logging
 from lms_passthrough.provider_api import (
     CanonicalOutput,
     Capability,
@@ -77,6 +77,8 @@ ERROR_THRESHOLD = 500
 TRANSIENT_STATUSES = frozenset({500, 502, 503, 504})
 
 T = TypeVar("T")
+
+logger = get_logger("app")
 
 
 def _native_error(message: str, error_type: str = "invalid_request") -> dict[str, dict[str, str]]:
@@ -570,6 +572,15 @@ def create_app(config_path: Path | None = None) -> FastAPI:
             body = raw_body
         if request.headers.get("x-lms-provider"):
             headers.pop("x-lms-provider", None)
+        log_body: Any = None
+        if body is not None:
+            log_body = json.loads(raw_body)
+        logger.debug(
+            "provider request",
+            extra=provider_request_extra(
+                provider_name, method, url, headers=headers, body=log_body
+            ),
+        )
         try:
             if body is None:
                 upstream = await client.request(method, url, headers=headers)
