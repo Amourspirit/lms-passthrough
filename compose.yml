@@ -15,6 +15,7 @@ services:
       - CF_OMLX_TOKEN=${CF_OMLX_TOKEN:-}
       - ONEMIN_CHAT_MODEL=${ONEMIN_CHAT_MODEL:-sonar}
       - TOKENRA_API_KEY=${TOKENRA_API_KEY:-}
+      - JEV_API_KEY=${JEV_API_KEY:-}
     volumes:
       - ${DOCKER_CONFIG:-./storage/config/docker-config.yaml}:/app/config.yaml:ro
       - ./storage/state:/app/state
